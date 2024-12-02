@@ -56,8 +56,27 @@ class TaskQueue {
 
 let authToken = undefined
 const queue = new TaskQueue()
-const omnivoreURL = process.env.OMNIVORE_URL
-const omnivoreGraphqlURL = process.env.OMNIVORE_GRAPHQL_URL
+// const omnivoreURL = process.env.OMNIVORE_URL
+// const omnivoreGraphqlURL = process.env.OMNIVORE_GRAPHQL_URL
+// const omnivoreURL = "http://localhost:3000"
+// const omnivoreGraphqlURL = "http://localhost:4000/api/"
+
+loadAPIUrl();
+
+function loadAPIUrl() {
+  getStorageItem('apiUrl').then((apiUrl) => {
+    if (apiUrl) {
+      omnivoreURL = apiUrl.split(":4000")[0]+":3000"
+      omnivoreGraphqlURL = apiUrl
+    } else {
+      alert('No API URL found in storage.')
+    }
+  })
+}
+
+var omnivoreURL
+var  omnivoreGraphqlURL
+
 
 let completedRequests = {}
 
@@ -840,15 +859,15 @@ function init() {
     },
   })
 
-  browser.runtime.onInstalled.addListener(async ({ reason, temporary }) => {
+  chrome.runtime.onInstalled.addListener(async ({ reason, temporary }) => {
     // if (temporary) return // skip during development
     console.log('onInstalled: ', reason, temporary)
     switch (reason) {
       case 'update':
         getConsentGranted().then((consentGranted) => {
           if (!consentGranted) {
-            const url = browser.runtime.getURL('views/installed.html')
-            return browser.tabs.create({ url })
+            const url = chrome.runtime.getURL('views/installed.html')
+            return chrome.tabs.create({ url })
           } else {
             console.log('consent already granted, not showing installer.')
           }
@@ -856,8 +875,8 @@ function init() {
         break
       case 'install':
         {
-          const url = browser.runtime.getURL('views/installed.html')
-          await browser.tabs.create({ url })
+          const url = chrome.runtime.getURL('views/installed.html')
+          await chrome.tabs.create({ url })
         }
         break
       // see below
